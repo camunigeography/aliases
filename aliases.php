@@ -42,17 +42,20 @@ class aliases extends frontControllerApplication
 			'domain' => array (
 				'description' => 'Domain control panel',
 				'url' => 'domain.html',
-				'tab' => '<img src="/images/icons/application_home.png" alt="" class="icon" /> Domain home',
+				'tab' => 'Domain home',
+				'icon' => 'application_home',
 			),
 			'sources' => array (
 				'description' => 'View/edit individual alias list',
 				'url' => 'sources.html',
-				'tab' => '<img src="/images/icons/application_edit.png" alt="" class="icon" /> View/edit by group',
+				'tab' => 'View/edit by group',
+				'icon' => 'application_edit',
 			),
 			'all' => array (
 				'description' => 'All aliases',
 				'url' => 'all.html',
-				'tab' => '<img src="/images/icons/application_view_list.png" alt="" class="icon" /> View complete list',
+				'tab' => 'View complete list',
+				'icon' => 'application_view_list',
 			),
 			'domainhome' => array (
 				'description' => false,
@@ -468,7 +471,7 @@ class aliases extends frontControllerApplication
 		$this->updateSingleAlias ($aliasDetails['source'], $alias, $result['value']);
 		
 		# Confirm success
-		$html = "\n<p><img src=\"/images/icons/tick.png\" alt=\"Tick\" class=\"icon\" /> The alias has been updated, in the source <a href=\"{$sourceLink}\">" . htmlspecialchars ($sourceName) . "</a>. Do you wish to <a href=\"{$this->baseUrl}/{$this->domain}/\">edit another</a>?</p>";
+		$html = "\n<p>{$this->tick} The alias has been updated, in the source <a href=\"{$sourceLink}\">" . htmlspecialchars ($sourceName) . "</a>. Do you wish to <a href=\"{$this->baseUrl}/{$this->domain}/\">edit another</a>?</p>";
 		
 		# Return the HTML
 		return $html;
