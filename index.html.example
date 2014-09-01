@@ -1,0 +1,20 @@
+<?php
+
+# Define the domains and the users who can edit them
+$settings['domains'] = array (
+	'botolphs'		=> array ('spqr1', 'xyz1234', ),
+	'radegund'		=> array ('spqr1', ),
+	'example.com'	=> array ('spqr1', 'xyz1234', ),
+);
+
+# Files which are automatically generated and should be locked-off from native editing, listed as 'domain/section', if any
+$settings['uneditable'] = array (
+	'botolphs/directory' => 'http://www.botolphs.cam.ac.uk/directory/',
+);
+
+
+# Run the application with the specified settings
+require_once ('aliases.php');
+new aliases ($settings);
+
+?>

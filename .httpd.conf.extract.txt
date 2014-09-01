@@ -1,0 +1,70 @@
+# Apache httpd.conf extract providing URL routing and other directives
+
+#	Example usage in httpd.conf:
+#	
+#	# E-mail aliases management
+#	Include /path/to/aliases/.httpd.conf.extract.txt
+#	Use MacroAliases "/aliases" "username1 username2 ..." "/path/to/credentials/aliases.txt" "/path/to/aliases/:/path/to/php/libraries/"
+
+
+<Macro MacroAliases $baseUrl $usernames $credentialsFilePath $includePath>
+	
+	# Require HTTPS
+	RewriteEngine on
+	RewriteCond %{SERVER_PORT} !^443$
+	RewriteRule ^$baseUrl/ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+	
+	# Require auth throughout
+	<Location $baseUrl/>
+		Order deny,allow
+		Deny from all
+		AuthType Ucam-WebAuth
+		AADescription "Hermes mail alias management"
+		AAForceInteract On
+		Require user $usernames
+		Satisfy any
+	</Location>
+	
+	<Location $baseUrl>
+		php_value include_path "$includePath"
+	</Location>
+	
+	# Front Controller Application support
+	Use MacroFrontControllerApplication "$baseUrl/" "E-mail alias management"
+	
+	# Application directives
+	RewriteRule ^$baseUrl/([-.a-z0-9]+).txt$ $baseUrl/index.html?domain=$1&action=export [L]
+	RewriteRule ^$baseUrl/(domain|sources|all).html$ $baseUrl/index.html?action=$1 [L]
+	RewriteRule ^$baseUrl/([-.a-z0-9]+)/$ $baseUrl/index.html?domain=$1&action=domainhome [L]
+	RewriteRule ^$baseUrl/([-.a-z0-9]+)$ $baseUrl/$1/ [R]
+	RewriteRule ^$baseUrl/([-.a-z0-9]+)/(all|sources)/$ $baseUrl/index.html?domain=$1&action=domain$2 [L]
+	RewriteRule ^$baseUrl/([-.a-z0-9]+)/(all|sources)$ $baseUrl/$1/$2/ [R]
+	RewriteRule ^$baseUrl/([-.a-z0-9]+)/data.html$ $baseUrl/index.html?domain=$1&action=data [L,QSA]
+	RewriteRule ^$baseUrl/([-.a-z0-9]+)/sources/([-a-z]+)/$ $baseUrl/index.html?domain=$1&action=domainsources&item=$2 [L]
+	RewriteRule ^$baseUrl/([-.a-z0-9]+)/sources/([-a-z]+)$ $baseUrl/$1/sources/$2/ [R]
+	RewriteRule ^$baseUrl/([-.a-z0-9]+)/sources/([-a-z]+)/update/$ $baseUrl/index.html?domain=$1&action=update&item=$2 [L]
+	RewriteRule ^$baseUrl/([-.a-z0-9]+)/sources/([-a-z]+)/update$ $baseUrl/$1/sources/$2/update/ [R]
+	
+	# Deny HTTP access to file storage
+	<LocationMatch ^$baseUrl/([-.a-z0-9]+)/(.+)\.txt$>
+		Deny from all
+		Satisfy all
+	</LocationMatch>
+	
+	# Limit access to hermes
+	<LocationMatch ^$baseUrl/([-.a-z0-9]+)\.txt$>
+		php_admin_value auto_prepend_file none
+		php_admin_value auto_append_file none
+		AuthUserFile $credentialsFilePath
+		AuthType basic
+		AuthName "Protected content"
+		Require user hermes
+	</LocationMatch>
+	
+	# Disable any auto-prepending for the data output area
+	<LocationMatch ^$baseUrl/([-.a-z0-9]+)/data\.html$>
+		php_value auto_prepend_file none
+		php_value auto_append_file none
+	</LocationMatch>
+	
+</Macro>
