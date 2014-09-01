@@ -7,6 +7,7 @@ class aliases extends frontControllerApplication
 {
 	# Hermes details
 	private $retrievalUsername = 'hermes';	// Username for retrieval of the file by Hermes at <baseUrl>/{$this->domain}.txt
+	private $retrievalSystem = 'Hermes';	// Commonly-known name of the retriever
 	
 	# Regexp for localparts
 	#!# Ideally need to get rid of ._ in the aliases
@@ -40,18 +41,23 @@ class aliases extends frontControllerApplication
 		$actions = array (
 			'domain' => array (
 				'description' => 'Domain control panel',
-				'url' => '%s/',
-				'validateDomain' => true,
+				'url' => 'domain.html',
+				'tab' => '<img src="/images/icons/application_home.png" alt="" class="icon" /> Domain home',
 			),
 			'sources' => array (
 				'description' => 'View/edit individual alias list',
 				'url' => 'sources.html',
-				'tab' => '<img src="/images/icons/application_edit.png" alt="" class="icon" /> View/edit individual sources',
+				'tab' => '<img src="/images/icons/application_edit.png" alt="" class="icon" /> View/edit by group',
 			),
 			'all' => array (
 				'description' => 'All aliases',
 				'url' => 'all.html',
-				'tab' => '<img src="/images/icons/application_view_list.png" alt="" class="icon" /> View compiled domain',
+				'tab' => '<img src="/images/icons/application_view_list.png" alt="" class="icon" /> View complete list',
+			),
+			'domainhome' => array (
+				'description' => false,
+				'url' => '',
+				'validateDomain' => true,
 			),
 			'domainsources' => array (
 				'description' => 'View/edit individual alias list for this domain',
@@ -61,6 +67,12 @@ class aliases extends frontControllerApplication
 			'domainall' => array (
 				'description' => 'All aliases for this domain',
 				'url' => 'all/',
+				'validateDomain' => true,
+			),
+			'data' => array (	// Used for e.g. AJAX calls, etc.
+				'description' => 'Data point',
+				'url' => 'data.html',
+				'export' => true,
 				'validateDomain' => true,
 			),
 			'update' => array (
@@ -146,6 +158,11 @@ class aliases extends frontControllerApplication
 			}
 			asort ($this->files);
 			
+			# Remove 'lastretrieved'
+			if (isSet ($this->files['lastretrieved'])) {
+				unset ($this->files['lastretrieved']);
+			}
+			
 			# Create a listing of uneditable files
 			foreach ($this->files as $source => $name) {
 				$lookFor = $this->domain . '/' . $source;
@@ -165,7 +182,7 @@ class aliases extends frontControllerApplication
 		
 		# Create the list
 		$values = array ();
-		$values["{$this->baseUrl}/"] = 'Select domain:';
+		$values["{$this->baseUrl}/"] = 'Select domain...';
 		ksort ($this->settings['domains']);
 		foreach ($this->settings['domains'] as $domain => $users) {
 			$location = "{$this->baseUrl}/{$domain}/";
@@ -262,7 +279,7 @@ class aliases extends frontControllerApplication
 	private function selectDomain ($function = false)
 	{
 		# Determine the function part of the URL
-		$functionUrlSlug = ($function ? "{$function}/" : '');
+		$functionUrlSlug = (($function && $function != 'domain') ? "{$function}/" : '');
 		
 		# Redirect to what the user will perceive as the 'current' domain if they were on a domain page
 		if ($function) {
@@ -299,21 +316,8 @@ class aliases extends frontControllerApplication
 	}
 	
 	
-	# Front domain page
+	# Tab/redirection page for domain home
 	public function domain ()
-	{
-		# Compile the HTML
-		$html  = "\n<p>You can <a href=\"{$this->baseUrl}/{$this->domain}/all/\"><strong>view the automatically-compiled master list</strong></a>, or edit the individual sources:</p>";
-		$html .= $this->sourcesTable ();
-		$html .= "\n<p>The managers of this domain (<strong>{$this->domain}</strong>) are: <strong>" . implode ('</strong>, <strong>', $this->settings['domains'][$this->domain]) . "</strong>. Please <a href=\"{$this->baseUrl}/feedback.html\">contact the Webmaster</a> to have this list changed.</p>";
-		
-		# Show the HTML
-		echo $html;
-	}
-	
-	
-	# Tab/redirection page for all
-	public function all ()
 	{
 		# Show the list
 		echo $this->selectDomain (__FUNCTION__);
@@ -325,6 +329,187 @@ class aliases extends frontControllerApplication
 	{
 		# Show the list
 		echo $this->selectDomain (__FUNCTION__);
+	}
+	
+	
+	# Tab/redirection page for all
+	public function all ()
+	{
+		# Show the list
+		echo $this->selectDomain (__FUNCTION__);
+	}
+	
+	
+	# Front domain page
+	public function domainhome ()
+	{
+		# Compile the HTML
+		$html  = "\n<h2>@{$this->domain} Control panel</h2>";
+		$html .= "\n<p>You can <a href=\"{$this->baseUrl}/{$this->domain}/all/\"><strong>view the automatically-compiled master list</strong></a>, or edit the individual sources:</p>";
+		$html .= $this->sourcesTable ();
+		$html .= "\n<h2>Edit individual alias</h2>";
+		$html .= $this->editIndividualAlias ();
+		$html .= "\n<h2>Last retrieval by {$this->retrievalSystem}</h2>";
+		$html .= $this->lastRetrievalTime ();
+		$html .= "\n<h2>@{$this->domain} Managers</h2>";
+		$html .= "\n<p>The managers of @{$this->domain} are: <strong>" . implode ('</strong>, <strong>', $this->settings['domains'][$this->domain]) . "</strong>.</p>";
+		$html .= "\n<p>Please <a href=\"{$this->baseUrl}/feedback.html\">contact the Webmaster</a> to have this list changed.</p>";
+		
+		# Show the HTML
+		echo $html;
+	}
+	
+	
+	# Form for searching for, and then editing, an individual alias
+	public function editIndividualAlias ()
+	{
+		# Start the HTML
+		$html  = '';
+		
+		# Define the name of the search form (stage 1 form)
+		$searchFormName = 'search';
+		$editFormName = 'editalias';
+		$aliasFormElement = 'alias';
+		
+		# Determine the state
+		$searchFormPosted	= (isSet ($_POST[$searchFormName]) && isSet ($_POST[$searchFormName][$aliasFormElement]));
+		$editFormPosted		= (isSet ($_POST[$editFormName])   && isSet ($_POST[$editFormName][$aliasFormElement]));
+		
+		# If the first form has not been posted, show it
+		if (!$searchFormPosted && !$editFormPosted) {
+			
+			# Define the data URL
+			$dataUrl = "{$_SERVER['_SITE_URL']}{$this->baseUrl}/{$this->domain}/data.html";
+			
+			# Run the form module
+			$form = new form (array (
+				'displayRestrictions' => false,
+				'name' => $searchFormName,
+				'nullText' => false,
+				'div' => 'ultimateform',
+				'display' => 'template',
+				'displayTemplate' => '{[[PROBLEMS]]}<p>Alias: &nbsp; {alias} {[[SUBMIT]]}</p>',
+				'submitButtonText' => 'Go!',
+				'submitButtonAccesskey' => false,
+				'formCompleteText' => false,
+				'requiredFieldIndicator' => false,
+				'reappear' => true,
+			));
+			$form->search (array (
+				'name'			=> $aliasFormElement,
+				'title'			=> 'Alias',
+				'size' => 30,
+				'required' => true,
+				'autocomplete'	=> $dataUrl,
+				'autocompleteOptions' => array ('delay' => 0, ),
+				'autofocus' => true,
+			));
+			if (!$result = $form->process ($html)) {return $html;}
+		}
+		
+		# Assign the alias, from either form
+		$alias = ($editFormPosted ? $_POST[$editFormName][$aliasFormElement] : $_POST[$searchFormName][$aliasFormElement]);
+		
+		# Ensure this is a valid alias
+		$localParts = $this->getLocalParts ();
+		if (!in_array ($alias, $localParts)) {
+			$html  = "\n<p>The alias <em>" . htmlspecialchars ($alias) . "</em> does not exist. Please <a href=\"{$this->baseUrl}/{$this->domain}/\">search again</a>.</p>";
+			return $html;
+		}
+		
+		# Get the details of the selected alias
+		if (!$aliasDetails = $this->getAliasDetails ($alias)) {
+			$html  = "\n<p>There was a problem retrieving the details for <em>" . htmlspecialchars ($alias) . '</em>.</p>';
+			#!# Report error to admin - this should not happen
+			return $html;
+		}
+		
+		# Pre-compile a link and name for the source
+		$sourceLink = "{$this->baseUrl}/{$this->domain}/sources/{$aliasDetails['source']}/";
+		$sourceName = $this->files[$aliasDetails['source']];
+		
+		# Ensure that an uneditable file cannot be edited this way
+		if (isSet ($this->uneditableFiles[$aliasDetails['source']])) {
+			$html  = "\n<p>This alias is part of the <a href=\"{$sourceLink}\">" . htmlspecialchars ($sourceName) . "</a> grouping which cannot be edited via this form but is <a href=\"{$this->uneditableFiles[$aliasDetails['source']]}\">set externally</a>.</p>";
+			return $html;
+		}
+		
+		# Show the editing form for this alias
+		$form = new form (array (
+			'displayRestrictions' => false,
+			'name' => $editFormName,
+			'nullText' => false,
+			'div' => 'ultimateform',
+			'display' => 'template',
+			'displayTemplate' => "{[[PROBLEMS]]}<p>{alias}: &nbsp; {value} {[[SUBMIT]]} &nbsp; <span class=\"smaller\">or <a href=\"{$this->baseUrl}/{$this->domain}/\">cancel</a></span>.</p>",
+			'submitButtonText' => 'Update!',
+			'submitButtonAccesskey' => false,
+			'formCompleteText' => false,
+			'requiredFieldIndicator' => false,
+		));
+		$form->input (array (
+			'name'			=> $aliasFormElement,
+			'title'			=> 'Alias',
+			'required' => true,
+			'editable' => false,
+			'default' => $alias,
+		));
+		$form->email (array (
+			'name'			=> 'value',
+			'title'			=> 'Recipients',
+			'size' => 60,
+			'required' => true,
+			'multiple' => true,
+			'default' => $aliasDetails['value'],
+		));
+		if (!$result = $form->process ($html)) {return $html;}
+		
+		# Update the file
+		$this->updateSingleAlias ($aliasDetails['source'], $alias, $result['value']);
+		
+		# Confirm success
+		$html = "\n<p><img src=\"/images/icons/tick.png\" alt=\"Tick\" class=\"icon\" /> The alias has been updated, in the source <a href=\"{$sourceLink}\">" . htmlspecialchars ($sourceName) . "</a>. Do you wish to <a href=\"{$this->baseUrl}/{$this->domain}/\">edit another</a>?</p>";
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Function to determine which file an alias is in
+	private function getAliasDetails ($alias)
+	{
+		# Find the alias and return its data
+		foreach ($this->files as $source => $description) {
+			$aliases = $this->getAliasesAsKeyValue ($source);
+			if (isSet ($aliases[$alias])) {
+				return array (
+					'key'		=> $alias,
+					'value'		=> trim ($aliases[$alias]),
+					'source'	=> $source,
+				);
+			}
+		}
+		
+		# Return empty array
+		return array ();
+	}
+	
+	
+	# Function to update an individual alias
+	private function updateSingleAlias ($source, $alias, $newValue)
+	{
+		# Open the current source file
+		$aliases = $this->getAliases ($source);
+		
+		# Replace the current one
+		$newLine = "{$alias}: {$newValue}";
+		$aliases = preg_replace ("/^{$alias}\s*:.+$/m", $newLine, $aliases);
+		
+		# Write the new file
+		$result = $this->updateAliases ($source, $aliases);
+		
+		# Return the result
+		return $result;
 	}
 	
 	
@@ -340,9 +525,37 @@ class aliases extends frontControllerApplication
 		# Compile the files into the master list
 		$contents = $this->compileMasterList ();
 		
+		# Save the last retrieval time
+		$this->lastRetrievalTime ($write = true);
+		
 		# Echo the contents, as plain text
 		header ('Content-Type: text/plain');
 		echo $contents;
+	}
+	
+	
+	# Function to read and write the last retrieval time
+	public function lastRetrievalTime ($write = false)
+	{
+		# Determine the filename
+		$filename = $this->fileRoot . $this->domain . '/' . 'lastretrieved.txt';
+		
+		# Update if required
+		if ($write) {
+			file_put_contents ($filename, time ());
+		}
+		
+		# Read the date in the file
+		if (!is_readable ($filename)) {
+			return "\n<p>The time that {$this->retrievalSystem} last retrieved the file could not be determined.</p>";
+		}
+		
+		# Obtain the time
+		$string = file_get_contents ($filename);
+		$time = date ('g.ia, j/M/Y', trim ($string));
+		
+		# Return the time
+		return "\n<p>{$this->retrievalSystem} last retrieved the aliases for @{$this->domain} at <strong>{$time}</strong>.</p>";
 	}
 	
 	
@@ -353,7 +566,8 @@ class aliases extends frontControllerApplication
 		$contents = $this->compileMasterList ();
 		
 		# Compile the HTML
-		$html  = "\n<p>Here is the compiled, master list, which will get picked up by Hermes:</p>";
+		$html  = "\n<p>Below is the compiled, master list, which will get picked up by {$this->retrievalSystem}.</p>";
+		$html .= $this->lastRetrievalTime ();
 		$html .= $this->aliasesToHtml ($contents);
 		
 		# Show the HTML
@@ -382,9 +596,34 @@ class aliases extends frontControllerApplication
 		# Unique the list (this should not be necessary)
 		$localParts = array_unique ($localParts);
 		
+//echo count ($localParts);
+		
 		# Return the list
 		return $localParts;
 	}
+	
+	
+	# Get the aliases in a file as key=>value
+	private function getAliasesAsKeyValue ($source)
+	{
+		# Get the aliases
+		$aliasesText = $this->getAliases ($source);
+		
+		# Do match
+		preg_match_all ('/' . $this->allowedAliasRegexp . '/m', $aliasesText, $matches, PREG_SET_ORDER);	// /m flag is multi-line
+		
+		# Loop through each
+		$aliases = array ();
+		foreach ($matches as $alias) {
+			$key	= $alias[1];
+			$value	= $alias[2];
+			$aliases[$key] = $value;
+		}
+		
+		# Return the list
+		return $aliases;
+	}
+	
 	
 	
 	# Function to compile all the alias lists into a master list
@@ -409,9 +648,6 @@ class aliases extends frontControllerApplication
 		# Return the list
 		return $contents;
 	}
-	
-	
-	
 	
 	
 	# Sources page for a domain
@@ -526,8 +762,7 @@ class aliases extends frontControllerApplication
 		}
 		
 		# Get the file
-		$filename = $this->fileRoot . $this->domain . '/' . $source . '.txt';
-		$contents = file_get_contents ($filename);
+		$contents = $this->getAliases ($source);
 		
 		# Form for editing
 		$form = new form (array (
@@ -535,7 +770,7 @@ class aliases extends frontControllerApplication
 			'formCompleteText' => false,
 			'unsavedDataProtection' => true,
 		));
-		$form->heading ('p', "Format:<pre># Comment lines start with a hash\nalias: address1@cam.ac.uk, address2@hotmail.com\nanother-alias: foobar@{$this->domain}.cam.ac.uk, xyz123@cam.ac.uk</pre>");
+		$form->heading ('p', "Format:<pre># Comment lines start with a hash\nalias: address1@cam.ac.uk, address2@hotmail.com\nanother-alias: foobar@{$this->domain}.cam.ac.uk, spqr1@cam.ac.uk</pre>");
 		$form->textarea (array (
 			'name'			=> 'aliases',
 			'title'			=> "Edit the <strong>{$this->files[$source]}</strong> list, then press submit below",
@@ -612,6 +847,23 @@ class aliases extends frontControllerApplication
 		# Process the form
 		if (!$result = $form->process ($html)) {return false;}
 		
+		# Update the file
+		$this->updateAliases ($source, $result['aliases']);
+		
+		# Redirect the user automatically or give a link
+		$_SESSION['updated'] = '1';
+		$url = "{$this->baseUrl}/{$this->domain}/sources/{$source}/";
+		application::sendHeader (302, $_SERVER['_SITE_URL'] . $url);
+		echo "\n" . "<p><strong>Thanks for keeping the list updated.</strong><br />You can <a href=\"{$url}\">view the updated entry</a> or <a href=\"{$this->baseUrl}/sources/{$source}/update/\">edit it further</a>.</p>";
+	}
+	
+	
+	# Function to update an alias file
+	private function updateAliases ($source, $text)
+	{
+		# Determine the filename for this source
+		$filename = $this->fileRoot . $this->domain . '/' . $source . '.txt';
+		
 		# Back up the old file
 		#!# Error handling
 		$directory = $this->fileRoot . $this->domain . '/' . 'backups/';
@@ -623,13 +875,44 @@ class aliases extends frontControllerApplication
 		
 		# Save the new file
 		#!# Error handling
-		file_put_contents ($filename, $result['aliases']);
+		$result = file_put_contents ($filename, $text);
+		$result = ($result === true);	// Deal with boolean false vs zero-bytes written
 		
-		# Redirect the user automatically or give a link
-		$_SESSION['updated'] = '1';
-		$url = "{$this->baseUrl}/{$this->domain}/sources/{$source}/";
-		application::sendHeader (302, $_SERVER['_SITE_URL'] . $url);
-		echo "\n" . "<p><strong>Thanks for keeping the list updated.</strong><br />You can <a href=\"{$url}\">view the updated entry</a> or <a href=\"{$this->baseUrl}/sources/{$source}/update/\">edit it further</a>.</p>";
+		# Return result
+		return $result;
+	}
+	
+	
+	# Function to provide auto-complete functionality
+	public function data ()
+	{
+		# End if no query
+		if (!isSet ($_GET['term']) || !strlen ($_GET['term'])) {return false;}
+		
+		# Obtain the query
+		$term = $_GET['term'];
+		
+		# Ensure the query term is valid
+		$testAgainst = $term . ':bogus';	// Add a bogus value part, as $this->allowedAliasRegexp assumes that is present
+		if (!preg_match ('/' . $this->allowedAliasRegexp . '/', $testAgainst)) {return false;}
+		
+		# Get the existing aliases
+		$localParts = $this->getLocalParts ();
+		sort ($localParts);
+		
+		# Match the aliases, using a word boundary match so that "student" would pick up e.g. "phd.students"
+		$data = array ();
+		foreach ($localParts as $localPart) {
+			if (preg_match ("/\b{$term}/", $localPart)) {
+				$data[] = array ('value' => $localPart, 'label' => $localPart);	// See: http://af-design.com/blog/2010/05/12/using-jquery-uis-autocomplete-to-populate-a-form/ which documents this
+			}
+		}
+		
+		# Arrange the data
+		$json = json_encode ($data);
+		
+		# Send the text
+		echo $json;
 	}
 }
 
