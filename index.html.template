@@ -12,6 +12,9 @@ $settings['uneditable'] = array (
 	'botolphs/directory' => 'http://www.botolphs.cam.ac.uk/directory/',
 );
 
+# API access
+$settings['apiUsername'] = 'api_username_here';
+
 
 # Run the application with the specified settings
 require_once ('aliases.php');

@@ -21,6 +21,7 @@ class aliases extends frontControllerApplication
 		$defaults = array (
 			'div' => 'aliases',
 			'applicationName' => 'Hermes mail alias management',
+			'apiUsername' => false,		// Optional API access
 			'useDatabase' => false,
 			'authentication' => true,	// Users are set at container (Apache) level, but this flag requires all parts of this web application also to require a user to be supplied
 			'lists' => array (
@@ -916,6 +917,26 @@ class aliases extends frontControllerApplication
 		
 		# Send the text
 		echo $json;
+	}
+	
+	
+	# API call for dashboard
+	public function apiCall_dashboard ($username = NULL)
+	{
+		# Ensure a username is supplied
+		if (!$username) {
+			$error = 'No username was supplied.';
+			return false;
+		}
+		
+		# State that the service is enabled
+		$data['enabled'] = true;
+		
+		
+		$data['error'] = 'Not yet implemented';
+		
+		# Return the data
+		return $data;
 	}
 }
 
