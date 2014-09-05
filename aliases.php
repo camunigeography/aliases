@@ -95,11 +95,7 @@ class aliases extends frontControllerApplication
 		
 		# Remove domains which the user cannot access; NB Ideally this would be done in main() or equivalent, but it is needed by domainDroplist
 		$this->settings['domainsOriginalCached'] = $this->settings['domains'];
-		foreach ($this->settings['domains'] as $domain => $users) {
-			if (!in_array ($this->user, $users)) {
-				unset ($this->settings['domains'][$domain]);
-			}
-		}
+		$this->settings['domains'] = $this->getDomainsOfUser ($this->user);
 		
 		# For the home tab, if there is more than one domain, disable the link and replace with a droplist instead
 		if ($domainDroplist = $this->domainDroplist ()) {
@@ -110,6 +106,23 @@ class aliases extends frontControllerApplication
 		# Return the actions
 		return $actions;
 	}
+	
+	
+	# Function to get the domains of a user
+	private function getDomainsOfUser ($username)
+	{
+		# Filter domains
+		$domains = $this->settings['domainsOriginalCached'];
+		foreach ($domains as $domain => $users) {
+			if (!in_array ($username, $users)) {
+				unset ($domains[$domain]);
+			}
+		}
+		
+		# Return the modified array
+		return $domains;
+	}
+	
 	
 	
 	# Additional processing
