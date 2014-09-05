@@ -936,17 +936,42 @@ class aliases extends frontControllerApplication
 	# API call for dashboard
 	public function apiCall_dashboard ($username = NULL)
 	{
-		# Ensure a username is supplied
-		if (!$username) {
-			$error = 'No username was supplied.';
-			return false;
-		}
+		# Start the HTML
+		$html = '';
 		
 		# State that the service is enabled
 		$data['enabled'] = true;
 		
+		# Ensure a username is supplied
+		if (!$username) {
+			$data['error'] = 'No username was supplied.';
+			return $data;
+		}
 		
-		$data['error'] = 'Not yet implemented';
+		# Get the domains of the user
+		$this->settings['domains'] = $this->getDomainsOfUser ($username);
+		
+		# End if not enabled
+		if (!$this->settings['domains']) {
+			$data['authorised'] = false;
+			return $data;
+		}
+		
+		# Define description
+		$data['descriptionHtml'] = "<p>The aliases system lets you manage e-mail aliases.</p>";
+		
+		# Add direct access to domains lists
+		$html .= $this->domainDroplist ();
+		/*
+		$list = array ();
+		foreach ($this->settings['domains'] as $domain => $users) {
+			$list[] = "<a href=\"{$this->baseUrl}/{$domain}/\">Edit {$domain} domain</a>";
+		}
+		$html .= application::htmlUl ($list);
+		*/
+		
+		# Register the HTML
+		$data['html'] = $html;
 		
 		# Return the data
 		return $data;
