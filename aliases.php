@@ -824,9 +824,9 @@ class aliases extends frontControllerApplication
 					}
 					
 					# Check the e-mail addresses are correctly-formatted
-					$addresses = preg_split ("/\s*,\s*/", trim ($matches[2]), NULL, PREG_SPLIT_NO_EMPTY);
+					$addresses = preg_split ("/\s*,\s*/", trim ($matches[2]), NULL);
 					foreach ($addresses as $address) {
-						if (!application::validEmail ($address)) {
+						if (!strlen ($address) || !application::validEmail ($address)) {
 							$invalidAddressLines[$lineNumberHuman] = $matches[2];
 							continue 2;	// Continue to next $line
 						}
