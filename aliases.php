@@ -15,7 +15,7 @@ class aliases extends frontControllerApplication
 	
 	
 	# Function to assign defaults additional to the general application defaults
-	function defaults ()
+	public function defaults ()
 	{
 		# Specify available arguments as defaults or as NULL (to represent a required argument)
 		$defaults = array (
@@ -41,7 +41,7 @@ class aliases extends frontControllerApplication
 	
 	
 	# Function to assign supported actions
-	function actions ()
+	public function actions ()
 	{
 		# Define available tasks
 		$actions = array (
@@ -155,7 +155,7 @@ class aliases extends frontControllerApplication
 	
 	
 	# Additional processing
-	function main ()
+	protected function main ()
 	{
 		# Enable cookies in HTTPS mode
 		ini_set ('session.cookie_secure', 1);
