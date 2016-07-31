@@ -125,6 +125,18 @@ class aliases extends frontControllerApplication
 	}
 	
 	
+	# Database structure definition
+	public function databaseStructure ()
+	{
+		return "
+			CREATE TABLE IF NOT EXISTS `administrators` (
+			  `username` varchar(255) COLLATE utf8_unicode_ci NOT NULL COMMENT 'Username' PRIMARY KEY,
+			  `active` enum('','Yes','No') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'Yes' COMMENT 'Currently active?'
+			) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Aliases administrators'
+		;";
+	}
+	
+	
 	# Function to get the domains of a user
 	private function getDomainsOfUser ($username)
 	{
