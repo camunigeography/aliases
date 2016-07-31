@@ -4,10 +4,10 @@
 #	
 #	# E-mail aliases management
 #	Include /path/to/aliases/.httpd.conf.extract.txt
-#	Use MacroAliases "/aliases" "username1 username2 ..." "/path/to/credentials/aliases.txt" "/path/to/aliases/:/path/to/php/libraries/"
+#	Use MacroAliases "/aliases" "/path/to/documentroot" "/path/to/credentials/aliases.txt" "/path/to/aliases/:/path/to/php/libraries/"
 
 
-<Macro MacroAliases $baseUrl $usernames $credentialsFilePath $includePath>
+<Macro MacroAliases $baseUrl $documentRoot $credentialsFilePath $includePath>
 	
 	# Require HTTPS
 	RewriteEngine on
@@ -21,7 +21,8 @@
 		AuthType Ucam-WebAuth
 		AADescription "Hermes mail alias management"
 		AAForceInteract On
-		Require user $usernames
+		AuthGroupFile $documentRoot/$baseUrl/.ht-users
+		Require group editors
 		Satisfy any
 	</Location>
 	

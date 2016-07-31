@@ -28,6 +28,7 @@ class aliases extends frontControllerApplication
 			'apiUsername' => false,		// Optional API access
 			'administrators' => true,
 			'authentication' => true,	// Users are set at container (Apache) level, but this flag requires all parts of this web application also to require a user to be supplied
+			'authFileGroup' => 'editors',
 			'lists' => array (
 				'general' => 'General addresses',
 			),
@@ -97,9 +98,16 @@ class aliases extends frontControllerApplication
 			),
 		);
 		
+		# Assemble the list of additional users, for use with authFileGroup
+		$additionalEditors = array ();
+		foreach ($this->settings['domains'] as $domain => $editors) {
+			$additionalEditors = array_merge ($additionalEditors, $editors);
+		}
+		$this->authFileGroupAdditionalUsers = array_unique ($additionalEditors);
+		
 		# Add in Administrators to the user list for each domain
-		foreach ($this->settings['domains'] as $domain => $users) {
-			$this->settings['domains'][$domain] = array_merge (array_keys ($this->administrators), $users);
+		foreach ($this->settings['domains'] as $domain => $editors) {
+			$this->settings['domains'][$domain] = array_merge (array_keys ($this->administrators), $editors);
 		}
 		
 		# Remove domains which the user cannot access; NB Ideally this would be done in main() or equivalent, but it is needed by domainDroplist

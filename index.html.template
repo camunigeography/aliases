@@ -3,7 +3,7 @@
 # Database credentials
 $settings['password'] = 'database_password_here';
 
-# Domains and the users (additional to the general administrators) who can edit them
+# Domains and the users (additional to the general administrators) who can edit them; if adding users, these will need to be manually added to .ht-users unless an update on the admins page is made
 $settings['domains'] = array (
 	'botolphs'		=> array (),
 	'radegund'		=> array ('spqr1', ),
