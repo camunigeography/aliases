@@ -1,10 +1,13 @@
 <?php
 
-# Define the domains and the users who can edit them
+# Database credentials
+$settings['password'] = 'database_password_here';
+
+# Domains and the users (additional to the general administrators) who can edit them
 $settings['domains'] = array (
-	'botolphs'		=> array ('spqr1', 'xyz1234', ),
+	'botolphs'		=> array (),
 	'radegund'		=> array ('spqr1', ),
-	'example.com'	=> array ('spqr1', 'xyz1234', ),
+	'example.com'	=> array ('xyz1234', ),
 );
 
 # Files which are automatically generated and should be locked-off from native editing, listed as 'domain/section', if any

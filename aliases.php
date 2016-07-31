@@ -19,10 +19,14 @@ class aliases extends frontControllerApplication
 	{
 		# Specify available arguments as defaults or as NULL (to represent a required argument)
 		$defaults = array (
-			'div' => 'aliases',
 			'applicationName' => 'Hermes mail alias management',
+			'div' => 'aliases',
+			'database' => __CLASS__,
+			'table' => false,
+			'username' => __CLASS__,
+			'password' => NULL,
 			'apiUsername' => false,		// Optional API access
-			'useDatabase' => false,
+			'administrators' => true,
 			'authentication' => true,	// Users are set at container (Apache) level, but this flag requires all parts of this web application also to require a user to be supplied
 			'lists' => array (
 				'general' => 'General addresses',
@@ -92,6 +96,11 @@ class aliases extends frontControllerApplication
 				'validateDomain' => true,
 			),
 		);
+		
+		# Add in Administrators to the user list for each domain
+		foreach ($this->settings['domains'] as $domain => $users) {
+			$this->settings['domains'][$domain] = array_merge (array_keys ($this->administrators), $users);
+		}
 		
 		# Remove domains which the user cannot access; NB Ideally this would be done in main() or equivalent, but it is needed by domainDroplist
 		$this->settings['domainsOriginalCached'] = $this->settings['domains'];

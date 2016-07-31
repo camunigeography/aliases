@@ -34,7 +34,7 @@ Dependencies
 Author
 ------
 
-Martin Lucas-Smith, Department of Geography, 2010-14.
+Martin Lucas-Smith, Department of Geography, 2010-16.
 
 
 License
