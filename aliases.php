@@ -900,7 +900,7 @@ class aliases extends frontControllerApplication
 		$_SESSION['updated'] = '1';
 		$url = "{$this->baseUrl}/{$this->domain}/sources/{$source}/";
 		application::sendHeader (302, $_SERVER['_SITE_URL'] . $url);
-		echo "\n" . "<p><strong>Thanks for keeping the list updated.</strong><br />You can <a href=\"{$url}\">view the updated entry</a> or <a href=\"{$this->baseUrl}/sources/{$source}/update/\">edit it further</a>.</p>";
+		echo "\n" . "<p><strong>Thanks for keeping the list updated.</strong><br />You can <a href=\"{$url}\">view the updated entry</a> or <a href=\"{$this->baseUrl}/{$this->domain}/sources/{$source}/update/\">edit it further</a>.</p>";
 	}
 	
 	
