@@ -894,8 +894,10 @@ class aliases extends frontControllerApplication
 		if (!$result = $form->process ($html)) {return false;}
 		
 		# Update the file
-		if (!$this->updateAliases ($source, $result['aliases'])) {
-			echo "<p class=\"warning\">{$this->cross} Apologies, an error occured while updating the aliases list. Please contact the Webmaster.</p>";
+		if (!$this->updateAliases ($source, $result['aliases'], $error /* returned by reference */)) {
+			application::utf8Mail ($this->settings['administratorEmail'], 'Aliases system: error', wordwrap ($error), "From: {$this->settings['administratorEmail']}");
+			echo "<p class=\"warning\">{$this->cross} Apologies, an error occured while updating the aliases list. The Webmaster has been notified of the problem..</p>";
+			echo "<p class=\"warning\">The error was: <br /><tt>" . htmlspecialchars ($error) . '</tt></p>';
 			return false;
 		}
 		
@@ -908,7 +910,7 @@ class aliases extends frontControllerApplication
 	
 	
 	# Function to update an alias file
-	private function updateAliases ($source, $text)
+	private function updateAliases ($source, $text, &$error = false)
 	{
 		# Determine the filename for this source
 		$filename = $this->fileRoot . $this->domain . '/' . $source . '.txt';
@@ -918,12 +920,23 @@ class aliases extends frontControllerApplication
 		if (!is_dir ($directory)) {
 			mkdir ($directory);
 		}
+		if (!is_writable ($directory)) {
+			$error = "The directory {$directory} is not writable.";
+			return false;
+		}
 		$backupFile = $directory . $source . '.until-' . date ('Ymd-His') . ".replacedby-{$this->user}" . '.txt';
-		if (!rename ($filename, $backupFile)) {return false;}
+		if (!rename ($filename, $backupFile)) {
+			$error = "The backup could not be created, by moving from {$filename} to {$backupFile}.";
+			return false;
+		}
 		
 		# Save the new file
 		$result = file_put_contents ($filename, $text);
 		$result = ($result === true);	// Deal with boolean false vs zero-bytes written, and return as bool
+		if (!$result) {
+			$error = "The new file could not be written to {$filename}.";
+			return false;
+		}
 		
 		# Return result
 		return $result;
