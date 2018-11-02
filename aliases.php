@@ -914,18 +914,16 @@ class aliases extends frontControllerApplication
 		$filename = $this->fileRoot . $this->domain . '/' . $source . '.txt';
 		
 		# Back up the old file
-		#!# Error handling
 		$directory = $this->fileRoot . $this->domain . '/' . 'backups/';
 		if (!is_dir ($directory)) {
 			mkdir ($directory);
 		}
 		$backupFile = $directory . $source . '.until-' . date ('Ymd-His') . ".replacedby-{$this->user}" . '.txt';
-		rename ($filename, $backupFile);
+		if (!rename ($filename, $backupFile)) {return false;}
 		
 		# Save the new file
-		#!# Error handling
 		$result = file_put_contents ($filename, $text);
-		$result = ($result === true);	// Deal with boolean false vs zero-bytes written
+		$result = ($result === true);	// Deal with boolean false vs zero-bytes written, and return as bool
 		
 		# Return result
 		return $result;
