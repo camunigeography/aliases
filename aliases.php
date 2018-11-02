@@ -932,11 +932,11 @@ class aliases extends frontControllerApplication
 		
 		# Save the new file
 		$result = file_put_contents ($filename, $text);
-		$result = ($result === true);	// Deal with boolean false vs zero-bytes written, and return as bool
-		if (!$result) {
+		if ($result === false) {
 			$error = "The new file could not be written to {$filename}.";
 			return false;
 		}
+		$result = ($result !== false);	// Deal with boolean false vs zero-bytes written, and return as bool
 		
 		# Return result
 		return $result;
