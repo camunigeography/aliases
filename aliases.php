@@ -894,7 +894,10 @@ class aliases extends frontControllerApplication
 		if (!$result = $form->process ($html)) {return false;}
 		
 		# Update the file
-		$this->updateAliases ($source, $result['aliases']);
+		if (!$this->updateAliases ($source, $result['aliases'])) {
+			echo "<p class=\"warning\">{$this->cross} Apologies, an error occured while updating the aliases list. Please contact the Webmaster.</p>";
+			return false;
+		}
 		
 		# Redirect the user automatically or give a link
 		$_SESSION['updated'] = '1';
