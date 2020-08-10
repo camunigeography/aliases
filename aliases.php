@@ -33,6 +33,7 @@ class aliases extends frontControllerApplication
 				'general' => 'General addresses',
 			),
 			'uneditable' => array (),	// Files which are automatically generated and should be locked-off from the interface, listed as 'domain/section' => http://domain.cam.ac.uk/path/to/whereitcanbeedited.html
+			'tabUlClass' => 'tabsflat',
 		);
 		
 		# Return the defaults
