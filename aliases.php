@@ -895,35 +895,49 @@ class aliases extends frontControllerApplication
 		if (!$result = $form->process ($html)) {return false;}
 		
 		# Update the file
-		$this->updateAliases ($source, $result['aliases']);
+		if (!$this->updateAliases ($source, $result['aliases'], $error /* returned by reference */)) {
+			application::utf8Mail ($this->settings['administratorEmail'], 'Aliases system: error', wordwrap ($error), "From: {$this->settings['administratorEmail']}");
+			echo "<p class=\"warning\">{$this->cross} Apologies, an error occured while updating the aliases list. The Webmaster has been notified of the problem..</p>";
+			echo "<p class=\"warning\">The error was: <br /><tt>" . htmlspecialchars ($error) . '</tt></p>';
+			return false;
+		}
 		
 		# Redirect the user automatically or give a link
 		$_SESSION['updated'] = '1';
 		$url = "{$this->baseUrl}/{$this->domain}/sources/{$source}/";
 		application::sendHeader (302, $_SERVER['_SITE_URL'] . $url);
-		echo "\n" . "<p><strong>Thanks for keeping the list updated.</strong><br />You can <a href=\"{$url}\">view the updated entry</a> or <a href=\"{$this->baseUrl}/sources/{$source}/update/\">edit it further</a>.</p>";
+		echo "\n" . "<p><strong>Thanks for keeping the list updated.</strong><br />You can <a href=\"{$url}\">view the updated entry</a> or <a href=\"{$this->baseUrl}/{$this->domain}/sources/{$source}/update/\">edit it further</a>.</p>";
 	}
 	
 	
 	# Function to update an alias file
-	private function updateAliases ($source, $text)
+	private function updateAliases ($source, $text, &$error = false)
 	{
 		# Determine the filename for this source
 		$filename = $this->fileRoot . $this->domain . '/' . $source . '.txt';
 		
 		# Back up the old file
-		#!# Error handling
 		$directory = $this->fileRoot . $this->domain . '/' . 'backups/';
 		if (!is_dir ($directory)) {
 			mkdir ($directory);
 		}
+		if (!is_writable ($directory)) {
+			$error = "The directory {$directory} is not writable.";
+			return false;
+		}
 		$backupFile = $directory . $source . '.until-' . date ('Ymd-His') . ".replacedby-{$this->user}" . '.txt';
-		rename ($filename, $backupFile);
+		if (!rename ($filename, $backupFile)) {
+			$error = "The backup could not be created, by moving from {$filename} to {$backupFile}.";
+			return false;
+		}
 		
 		# Save the new file
-		#!# Error handling
 		$result = file_put_contents ($filename, $text);
-		$result = ($result === true);	// Deal with boolean false vs zero-bytes written
+		if ($result === false) {
+			$error = "The new file could not be written to {$filename}.";
+			return false;
+		}
+		$result = ($result !== false);	// Deal with boolean false vs zero-bytes written, and return as bool
 		
 		# Return result
 		return $result;
