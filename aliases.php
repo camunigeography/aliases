@@ -241,8 +241,7 @@ class aliases extends frontControllerApplication
 		
 		# Create the jumplist and add a processor
 		$introductoryText = 'Select domain:';
-		$html  = pureContent::htmlJumplist ($values, $selected, $this->baseUrl . '/', $name = 'domainselection', $parentTabLevel = 0, $class = 'jumplist', $introductoryText);
-		pureContent::jumplistProcessor ($name);
+		$html = application::htmlJumplist ($values, $selected, $this->baseUrl . '/', $name = 'domainselection', $parentTabLevel = 0, $class = 'jumplist', $introductoryText);
 		
 		# Return the HTML
 		return $html;
