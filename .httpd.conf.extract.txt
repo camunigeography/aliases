@@ -16,14 +16,11 @@
 	
 	# Require auth throughout
 	<Location $baseUrl/>
-		Order deny,allow
-		Deny from all
 		AuthType Ucam-WebAuth
 		AADescription "Hermes mail alias management"
 		AAForceInteract On
 		AuthGroupFile $documentRoot/$baseUrl/.ht-users
 		Require group editors
-		Satisfy any
 	</Location>
 	
 	<Location $baseUrl>
@@ -48,18 +45,17 @@
 	
 	# Deny HTTP access to file storage
 	<LocationMatch ^$baseUrl/([-.a-z0-9]+)/(.+)\.txt$>
-		Deny from all
-		Satisfy all
+		Require all denied
 	</LocationMatch>
 	
-	# Limit access to hermes
+	# Limit access to hermes, and prevent auto-prepending
 	<LocationMatch ^$baseUrl/([-.a-z0-9]+)\.txt$>
-		php_admin_value auto_prepend_file none
-		php_admin_value auto_append_file none
 		AuthUserFile $credentialsFilePath
 		AuthType basic
 		AuthName "Protected content"
 		Require user hermes
+		php_admin_value auto_prepend_file none
+		php_admin_value auto_append_file none
 	</LocationMatch>
 	
 	# Disable any auto-prepending for the data output area
