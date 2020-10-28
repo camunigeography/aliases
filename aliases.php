@@ -158,12 +158,10 @@ class aliases extends frontControllerApplication
 	# Additional processing
 	protected function main ()
 	{
-		# Enable cookies in HTTPS mode
-		ini_set ('session.cookie_secure', 1);
-		
 		# Start a cookie session (used for for making the tabs 'sticky' and for confirmation of successful changes)
 		if (!$this->exportType) {
 			if (!session_id ()) {
+				ini_set ('session.cookie_secure', 1);	// Enable cookies in HTTPS mode
 				session_start ();
 			}
 		}
