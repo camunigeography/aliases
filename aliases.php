@@ -457,7 +457,7 @@ class aliases extends frontControllerApplication
 		
 		# Ensure this is a valid alias
 		$localParts = $this->getLocalParts ();
-		if (!in_array ($alias, $localParts)) {
+		if (!application::iin_array ($alias, $localParts, NULL, $alias /* returned by reference */)) {
 			$html  = "\n<p>The alias <em>" . htmlspecialchars ($alias) . "</em> does not exist. Please <a href=\"{$this->baseUrl}/{$this->domain}/\">search again</a>.</p>";
 			return $html;
 		}
