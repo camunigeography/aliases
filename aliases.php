@@ -391,7 +391,7 @@ class aliases extends frontControllerApplication
 		$html  = "\n<h2>@{$this->domain} Control panel</h2>";
 		$html .= "\n<p>You can <a href=\"{$this->baseUrl}/{$this->domain}/all/\"><strong>view the automatically-compiled master list</strong></a>, or edit the individual sources:</p>";
 		$html .= $this->sourcesTable ();
-		$html .= "\n<h2>Edit individual alias</h2>";
+		$html .= "\n<h2 id=\"individual\">Edit individual alias</h2>";
 		$html .= $this->editIndividualAlias ();
 		$html .= "\n<h2>Last retrieval by {$this->retrievalSystem}</h2>";
 		$html .= $this->lastRetrievalTime ();
@@ -438,6 +438,7 @@ class aliases extends frontControllerApplication
 				'formCompleteText' => false,
 				'requiredFieldIndicator' => false,
 				'reappear' => true,
+				'submitTo' => './#individual',
 			));
 			$form->search (array (
 				'name'			=> $aliasFormElement,
