@@ -108,7 +108,7 @@ class aliases extends frontControllerApplication
 		
 		# Add in Administrators to the user list for each domain
 		foreach ($this->settings['domains'] as $domain => $editors) {
-			$this->settings['domains'][$domain] = array_merge (array_keys ($this->administrators), $editors);
+			$this->settings['domains'][$domain] = array_unique (array_merge (array_keys ($this->administrators), $editors));
 		}
 		
 		# Remove domains which the user cannot access; NB Ideally this would be done in main() or equivalent, but it is needed by domainDroplist
