@@ -19,7 +19,7 @@ class aliases extends frontControllerApplication
 	{
 		# Specify available arguments as defaults or as NULL (to represent a required argument)
 		$defaults = array (
-			'applicationName' => 'Hermes mail alias management',
+			'applicationName' => 'E-mail alias management',
 			'div' => 'aliases',
 			'database' => __CLASS__,
 			'table' => false,
@@ -305,8 +305,8 @@ class aliases extends frontControllerApplication
 	{
 		# Welcome
 		$html  = "\n<h2>Welcome</h2>";
-		$html .= "\n<p>This system lets authorised users edit @<em>&lt;domain&gt;</em>.cam.ac.uk aliases in Hermes.</p>";
-		$html .= "\n<p>Hermes itself will periodically update the list by retrieving it from this system.</p>";
+		$html .= "\n<p>This system lets authorised users edit @<em>&lt;domain&gt;</em>.cam.ac.uk aliases.</p>";
+		$html .= "\n<p>Central systems will periodically update the list by retrieving it from this system.</p>";
 		$html .= $this->selectDomain ();
 		
 		# Unset any cookie
