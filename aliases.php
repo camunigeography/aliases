@@ -513,7 +513,7 @@ class aliases extends frontControllerApplication
 		$this->updateSingleAlias ($aliasDetails['source'], $alias, $result['value']);
 		
 		# Confirm success
-		$html = "\n<p>{$this->tick} The alias has been updated, in the source <a href=\"{$sourceLink}\">" . htmlspecialchars ($sourceName) . "</a>. Do you wish to <a href=\"{$this->baseUrl}/{$this->domain}/\">edit another</a>?</p>";
+		$html = "\n<p>{$this->tick} The alias <em>" . htmlspecialchars ($alias) . "</em> has been updated, in the source <a href=\"{$sourceLink}\">" . htmlspecialchars ($sourceName) . "</a>. Do you wish to <a href=\"{$this->baseUrl}/{$this->domain}/\">edit another</a>?</p>";
 		
 		# Return the HTML
 		return $html;
