@@ -132,7 +132,7 @@ class aliases extends frontControllerApplication
 			CREATE TABLE IF NOT EXISTS `administrators` (
 			  `username` varchar(191) NOT NULL COMMENT 'Username' PRIMARY KEY,
 			  `active` enum('','Yes','No') NOT NULL DEFAULT 'Yes' COMMENT 'Currently active?'
-			) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Aliases administrators'
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Aliases administrators'
 		;";
 	}
 	
