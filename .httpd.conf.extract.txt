@@ -4,10 +4,10 @@
 #	
 #	# E-mail aliases management
 #	Include /path/to/aliases/.httpd.conf.extract.txt
-#	Use MacroAliases "/aliases" "/path/to/documentroot" "/path/to/credentials/aliases.txt" "/path/to/aliases/:/path/to/php/libraries/"
+#	Use MacroAliases "/aliases" "/path/to/documentroot" "/path/to/credentials/aliases.txt"
 
 
-<Macro MacroAliases $baseUrl $documentRoot $credentialsFilePath $includePath>
+<Macro MacroAliases $baseUrl $documentRoot $credentialsFilePath>
 	
 	# Require HTTPS
 	RewriteEngine on
@@ -21,10 +21,6 @@
 		AAForceInteract On
 		AuthGroupFile $documentRoot/$baseUrl/.ht-users
 		Require group editors
-	</Location>
-	
-	<Location $baseUrl>
-		php_value include_path "$includePath"
 	</Location>
 	
 	# Front Controller Application support

@@ -2,7 +2,6 @@
 
 
 # Class to manage hermes mail aliases
-require_once ('frontControllerApplication.php');
 class aliases extends frontControllerApplication
 {
 	# Hermes details
@@ -189,7 +188,6 @@ class aliases extends frontControllerApplication
 		if ($this->domain) {
 			
 			# Get the list of files, omitting any that cannot be read
-			require_once ('directories.php');
 			$directory = $this->fileRoot . $this->domain . '/';
 			if (!$files = directories::listFiles ($directory, $supportedFileTypes = array ('txt'), $directoryIsFromRoot = true, $skipUnreadableFiles = true)) {
 				echo "\n<p class=\"error\">There are currently no files for this domain. Please <a href=\"{$this->baseUrl}/feedback.html\">contact the Webmaster</a> to request that one be added.</p>";
